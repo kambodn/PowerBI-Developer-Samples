@@ -5,7 +5,7 @@ import base64
 organization = "DS-GroupICT"
 project = "Digital%20Division"
 pat = ""
-parent_work_item_id = 12932  # ID of the parent work item
+parent_work_item_id = 21569  # ID of the parent work item
 field_to_set = "Custom.Year"
 field_value = "2024"
 
@@ -34,39 +34,40 @@ def update_work_item(work_item_id, field_name, value):
     else:
         print(f"Failed to update Work Item ID {work_item_id}: {response.text}")
 
-def get_descendants(parent_id):
+def get_descendants(work_item_id):
     """
-    Retrieves the IDs of all child work items of a parent work item.
+    Retrieves the IDs of all child work items of a given work item.
     """
-    url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workItems/{parent_id}?$expand=relations&api-version=7.1-preview.3"
+    url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workItems/{work_item_id}?$expand=relations&api-version=7.1-preview.3"
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
-        print(f"Failed to retrieve descendants for Parent Work Item ID {parent_id}: {response.text}")
+        print(f"Failed to retrieve descendants for Work Item ID {work_item_id}: {response.text}")
         return []
     
-    parent_work_item = response.json()
+    work_item = response.json()
     child_work_item_ids = []
-    if "relations" in parent_work_item:
-        for relation in parent_work_item["relations"]:
+    if "relations" in work_item:
+        for relation in work_item["relations"]:
             if relation["rel"] == "System.LinkTypes.Hierarchy-Forward":
                 child_id = relation["url"].split("/")[-1]
                 child_work_item_ids.append(child_id)
     return child_work_item_ids
 
-def update_field_for_hierarchy(parent_id, field_name, value):
+def update_hierarchy_recursive(work_item_id, field_name, value):
     """
-    Updates the specified field for the parent work item and all its descendants.
+    Recursively updates the specified field for the given work item and all its descendants.
     """
-    # Update parent work item
-    print(f"Updating Parent Work Item ID {parent_id}")
-    update_work_item(parent_id, field_name, value)
+    # Update the current work item
+    print(f"Updating Work Item ID {work_item_id}")
+    update_work_item(work_item_id, field_name, value)
     
-    # Get and update descendants
-    child_ids = get_descendants(parent_id)
+    # Get immediate descendants
+    child_ids = get_descendants(work_item_id)
+    
+    # Recursively update each descendant
     for child_id in child_ids:
-        print(f"Updating Child Work Item ID {child_id}")
-        update_work_item(child_id, field_name, value)
+        update_hierarchy_recursive(child_id, field_name, value)
 
 # Main Execution
 if __name__ == "__main__":
-    update_field_for_hierarchy(parent_work_item_id, field_to_set, field_value)
+    update_hierarchy_recursive(parent_work_item_id, field_to_set, field_value)
