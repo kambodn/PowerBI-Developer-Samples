@@ -1,12 +1,13 @@
 import requests
 import base64
+import logging
 
 # Azure DevOps organization and project details
 organization = "DS-GroupICT"
 project = "Digital%20Division"
 pat = ""
 parent_work_item_id = 21569  # ID of the parent work item
-field_to_set = "Custom.Year"
+field_to_set = "Custom.DS_Year"
 field_value = "2024"
 
 # Encode PAT for Basic Authentication
@@ -23,15 +24,17 @@ def update_work_item(work_item_id, field_name, value):
     url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workItems/{work_item_id}?api-version=7.1-preview.3"
     update_data = [
         {
-            "op": "add",
+            "op": "add", 
             "path": f"/fields/{field_name}",
             "value": value
         }
     ]
     response = requests.patch(url, headers=headers, json=update_data)
     if response.status_code == 200:
+        logging.info(f"Successfully updated Work Item ID {work_item_id}")
         print(f"Successfully updated Work Item ID {work_item_id}")
     else:
+        logging.error(f"Failed to update Work Item ID {work_item_id}: {response.text}")
         print(f"Failed to update Work Item ID {work_item_id}: {response.text}")
 
 def get_descendants(work_item_id):
