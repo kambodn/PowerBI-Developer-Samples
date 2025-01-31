@@ -1,12 +1,18 @@
 import requests
 import base64
 import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 
 # Azure DevOps organization and project details
-organization = "DS-GroupICT"
-project = "Digital%20Division"
-pat = ""
-parent_work_item_id = 21569  # ID of the parent work item
+organization = os.getenv('organization')
+project = os.getenv('project')
+pat = os.getenv('pat')
+parent_work_item_id = 12932  # ID of the parent work item
 field_to_set = "Custom.DS_Year"
 field_value = "2024"
 
